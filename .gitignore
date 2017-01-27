@@ -30,3 +30,8 @@ node_modules
 .lock-wscript
 
 lib
+
+# Vim
+.*.sw[a-z]
+
+bundle.js
