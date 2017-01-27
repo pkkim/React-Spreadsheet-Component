@@ -15,27 +15,14 @@ var SpreadsheetComponent = React.createClass({
      * React 'getInitialState' method
      */
     getInitialState: function() {
-        var initialData = this.props.initialData || {};
-
-        if (!initialData.rows) {
-            initialData.rows = [];
-
-            for (var i = 0; i < this.props.config.rows; i = i + 1) {
-                initialData.rows[i] = [];
-                for (var ci = 0; ci < this.props.config.columns; ci = ci + 1) {
-                    initialData.rows[i][ci] = '';
-                }
-            }
-        }
-
         return {
-            data: initialData,
             selected: null,
             lastBlurred: null,
             selectedElement: null,
             editing: false
         };
     },
+
 
     /**
      * React 'componentDidMount' method
@@ -58,7 +45,7 @@ var SpreadsheetComponent = React.createClass({
      * @return {[JSX]} [JSX to render]
      */
     render: function() {
-        var data = this.state.data,
+        var data = this.props.data,
             config = this.props.config,
             _cellClasses = this.props.cellClasses,
             rows = [], key, i, cellClasses;
@@ -66,8 +53,8 @@ var SpreadsheetComponent = React.createClass({
         this.spreadsheetId = this.props.spreadsheetId || Helpers.makeSpreadsheetId();
 
         // Sanity checks
-        if (!data.rows && !config.rows) {
-            return console.error('Table Component: Number of colums not defined in both data and config!');
+        if (!data && !config.rows) {
+            return console.error('Table Component: Number of columns not defined in both data and config!');
         }
 
         // Create Rows
@@ -220,13 +207,13 @@ var SpreadsheetComponent = React.createClass({
      */
     extendTable: function (direction) {
         var config = this.props.config,
-            data = this.state.data,
+            data = this.props.data,
             newRow, i;
 
         if (direction === 'down' && config.canAddRow) {
             newRow = [];
 
-            for (i = 0; i < this.state.data.rows[0].length; i = i + 1) {
+            for (i = 0; i < this.props.data.rows[0].length; i = i + 1) {
                 newRow[i] = '';
             }
 
@@ -267,7 +254,7 @@ var SpreadsheetComponent = React.createClass({
      * @param  {object} newValue                         [Value to set]
      */
     handleCellValueChange: function (cell, newValue) {
-        var data = this.state.data,
+        var data = this.props.data,
             row = cell[0],
             column = cell[1],
             oldValue = data.rows[row][column];

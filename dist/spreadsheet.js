@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component 0.5.1 - 
+ * react-spreadsheet-component 0.5.1 (dev build at Fri, 27 Jan 2017 08:07:45 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -449,27 +449,14 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      * React 'getInitialState' method
      */
     getInitialState: function() {
-        var initialData = this.props.initialData || {};
-
-        if (!initialData.rows) {
-            initialData.rows = [];
-
-            for (var i = 0; i < this.props.config.rows; i = i + 1) {
-                initialData.rows[i] = [];
-                for (var ci = 0; ci < this.props.config.columns; ci = ci + 1) {
-                    initialData.rows[i][ci] = '';
-                }
-            }
-        }
-
         return {
-            data: initialData,
             selected: null,
             lastBlurred: null,
             selectedElement: null,
             editing: false
         };
     },
+
 
     /**
      * React 'componentDidMount' method
@@ -492,7 +479,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      * @return {[JSX]} [JSX to render]
      */
     render: function() {
-        var data = this.state.data,
+        var data = this.props.data,
             config = this.props.config,
             _cellClasses = this.props.cellClasses,
             rows = [], key, i, cellClasses;
@@ -500,8 +487,8 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
         this.spreadsheetId = this.props.spreadsheetId || Helpers.makeSpreadsheetId();
 
         // Sanity checks
-        if (!data.rows && !config.rows) {
-            return console.error('Table Component: Number of colums not defined in both data and config!');
+        if (!data && !config.rows) {
+            return console.error('Table Component: Number of columns not defined in both data and config!');
         }
 
         // Create Rows
@@ -654,13 +641,13 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      */
     extendTable: function (direction) {
         var config = this.props.config,
-            data = this.state.data,
+            data = this.props.data,
             newRow, i;
 
         if (direction === 'down' && config.canAddRow) {
             newRow = [];
 
-            for (i = 0; i < this.state.data.rows[0].length; i = i + 1) {
+            for (i = 0; i < this.props.data.rows[0].length; i = i + 1) {
                 newRow[i] = '';
             }
 
@@ -701,7 +688,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      * @param  {object} newValue                         [Value to set]
      */
     handleCellValueChange: function (cell, newValue) {
-        var data = this.state.data,
+        var data = this.props.initialData,
             row = cell[0],
             column = cell[1],
             oldValue = data.rows[row][column];
@@ -744,7 +731,7 @@ module.exports = SpreadsheetComponent;
 
 },{"./dispatcher":2,"./helpers":3,"./row":4,"jquery":6}],6:[function(require,module,exports){
 /*!
- * jQuery JavaScript Library v2.2.3
+ * jQuery JavaScript Library v2.2.4
  * http://jquery.com/
  *
  * Includes Sizzle.js
@@ -754,7 +741,7 @@ module.exports = SpreadsheetComponent;
  * Released under the MIT license
  * http://jquery.org/license
  *
- * Date: 2016-04-05T19:26Z
+ * Date: 2016-05-20T17:23Z
  */
 
 (function( global, factory ) {
@@ -810,7 +797,7 @@ var support = {};
 
 
 var
-	version = "2.2.3",
+	version = "2.2.4",
 
 	// Define a local copy of jQuery
 	jQuery = function( selector, context ) {
@@ -5751,13 +5738,14 @@ jQuery.Event.prototype = {
 	isDefaultPrevented: returnFalse,
 	isPropagationStopped: returnFalse,
 	isImmediatePropagationStopped: returnFalse,
+	isSimulated: false,
 
 	preventDefault: function() {
 		var e = this.originalEvent;
 
 		this.isDefaultPrevented = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.preventDefault();
 		}
 	},
@@ -5766,7 +5754,7 @@ jQuery.Event.prototype = {
 
 		this.isPropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopPropagation();
 		}
 	},
@@ -5775,7 +5763,7 @@ jQuery.Event.prototype = {
 
 		this.isImmediatePropagationStopped = returnTrue;
 
-		if ( e ) {
+		if ( e && !this.isSimulated ) {
 			e.stopImmediatePropagation();
 		}
 
@@ -6705,19 +6693,6 @@ function getWidthOrHeight( elem, name, extra ) {
 		val = name === "width" ? elem.offsetWidth : elem.offsetHeight,
 		styles = getStyles( elem ),
 		isBorderBox = jQuery.css( elem, "boxSizing", false, styles ) === "border-box";
-
-	// Support: IE11 only
-	// In IE 11 fullscreen elements inside of an iframe have
-	// 100x too small dimensions (gh-1764).
-	if ( document.msFullscreenElement && window.top !== window ) {
-
-		// Support: IE11 only
-		// Running getBoundingClientRect on a disconnected node
-		// in IE throws an error.
-		if ( elem.getClientRects().length ) {
-			val = Math.round( elem.getBoundingClientRect()[ name ] * 100 );
-		}
-	}
 
 	// Some non-html elements return undefined for offsetWidth, so check for null/undefined
 	// svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
@@ -8609,6 +8584,7 @@ jQuery.extend( jQuery.event, {
 	},
 
 	// Piggyback on a donor event to simulate a different one
+	// Used only for `focus(in | out)` events
 	simulate: function( type, elem, event ) {
 		var e = jQuery.extend(
 			new jQuery.Event(),
@@ -8616,27 +8592,10 @@ jQuery.extend( jQuery.event, {
 			{
 				type: type,
 				isSimulated: true
-
-				// Previously, `originalEvent: {}` was set here, so stopPropagation call
-				// would not be triggered on donor event, since in our own
-				// jQuery.event.stopPropagation function we had a check for existence of
-				// originalEvent.stopPropagation method, so, consequently it would be a noop.
-				//
-				// But now, this "simulate" function is used only for events
-				// for which stopPropagation() is noop, so there is no need for that anymore.
-				//
-				// For the 1.x branch though, guard for "click" and "submit"
-				// events is still used, but was moved to jQuery.event.stopPropagation function
-				// because `originalEvent` should point to the original event for the constancy
-				// with other events and for more focused logic
 			}
 		);
 
 		jQuery.event.trigger( e, null, elem );
-
-		if ( e.isDefaultPrevented() ) {
-			event.preventDefault();
-		}
 	}
 
 } );
@@ -10589,7 +10548,7 @@ return jQuery;
 },{}],7:[function(require,module,exports){
 /*global define:false */
 /**
- * Copyright 2015 Craig Campbell
+ * Copyright 2016 Craig Campbell
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -10606,10 +10565,15 @@ return jQuery;
  * Mousetrap is a simple keyboard shortcut library for Javascript with
  * no external dependencies
  *
- * @version 1.5.3
+ * @version 1.6.0
  * @url craig.is/killing/mice
  */
 (function(window, document, undefined) {
+
+    // Check if mousetrap is used inside browser, if not, return
+    if (!window) {
+        return;
+    }
 
     /**
      * mapping of special keycodes to their corresponding keys
@@ -11573,6 +11537,18 @@ return jQuery;
     };
 
     /**
+     * allow custom key mappings
+     */
+    Mousetrap.addKeycodes = function(object) {
+        for (var key in object) {
+            if (object.hasOwnProperty(key)) {
+                _MAP[key] = object[key];
+            }
+        }
+        _REVERSE_MAP = null;
+    };
+
+    /**
      * Init the global mousetrap functions
      *
      * This method is needed to allow the global mousetrap functions to work
@@ -11607,7 +11583,7 @@ return jQuery;
             return Mousetrap;
         });
     }
-}) (window, document);
+}) (typeof window !== 'undefined' ? window : null, typeof  window !== 'undefined' ? document : null);
 
 },{}]},{},[5])(5)
 });

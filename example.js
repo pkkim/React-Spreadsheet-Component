@@ -7,13 +7,13 @@ var Spreadsheet = require('./lib/spreadsheet');
 // Example One
 var exampleOne = {};
 
-exampleOne.initialData = {
+exampleOne.data = {
     rows: [
         ['', '', '', '', '', '', '', ''],
         ['', 1, 2, 3, 4, 5, 6, 7],
         ['', 1, '', 3, 4, 5, 6, 7],
         ['', 1, 2, 3, 4, 5, 6, 7],
-        ['', 1, 2, 3, 4, 5, 6, 7]
+        ['', 1, 2, 3, 4, 5, 6, 8]
     ]
 };
 
@@ -32,7 +32,7 @@ exampleOne.config = {
 
 // Example Two
 var exampleTwo = {};
-exampleTwo.initialData = {
+exampleTwo.data = {
     rows: [
         ['Customer', 'Job', 'Contact', 'City', 'Revenue'],
         ['iDiscovery', 'Build', 'John Doe', 'Boston, MA', '500,000'],
@@ -64,5 +64,5 @@ exampleTwo.config = {
 };
 
 // Render
-ReactDOM.render(<Spreadsheet initialData={exampleOne.initialData} config={exampleOne.config} cellClasses={exampleOne.cellClasses} />, document.getElementById('exampleOne'));
-ReactDOM.render(<Spreadsheet initialData={exampleTwo.initialData} config={exampleTwo.config} cellClasses={exampleTwo.cellClasses} />, document.getElementById('exampleTwo'));
+ReactDOM.render(<Spreadsheet data={exampleOne.data} config={exampleOne.config} cellClasses={exampleOne.cellClasses} />, document.getElementById('exampleOne'));
+ReactDOM.render(<Spreadsheet data={exampleTwo.data} config={exampleTwo.config} cellClasses={exampleTwo.cellClasses} />, document.getElementById('exampleTwo'));
