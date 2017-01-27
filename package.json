@@ -1,22 +1,30 @@
 {
-  "name": "react-spreadsheet-component",
-  "description": "A Spreadsheet Component for ReactJS",
-  "version": "0.5.1",
+  "name": "react-spreadsheet-component-pkkim-fork",
+  "description": "A Spreadsheet Component for ReactJS (forked by Paul Kim)",
+  "version": "0.1.0",
   "license": "MIT",
-  "repository": "felixrieseberg/React-Spreadsheet-Component",
+  "repository": {
+	  "type": "git",
+	  "url": "https://github.com/pkkim/React-Spreadsheet-Component.git"
+  },
   "maintainers": [
     {
       "name": "Felix Rieseberg",
       "email": "felix@felixrieseberg.com",
       "web": "http://www.felixrieseberg.com"
-    }
+    },
+	{
+      "name": "Paul Kim",
+      "email": "paulkimpaul@gmail.com"
+	}
   ],
   "dependencies": {
     "jquery": "^2.1",
     "mousetrap": "^1.5.3"
   },
   "peerDependencies": {
-    "react": "^0.14.3"
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2"
   },
   "devDependencies": {
     "body-parser": "^1.12.4",
