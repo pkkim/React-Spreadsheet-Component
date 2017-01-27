@@ -7,21 +7,23 @@ var Spreadsheet = require('./lib/spreadsheet');
 // Example One
 var exampleOne = {};
 
+var rows = 3;
+var cols = 6;
+var dataRows = new Array(rows);
+for (var i = 0; i < rows; i++) {
+    dataRows[i] = new Array(cols);
+    for (var j = 0; j < cols; j++) {
+        dataRows[i][j] = i + j;
+    }
+}
 exampleOne.data = {
-    rows: [
-        ['', '', '', '', '', '', '', ''],
-        ['', 1, 2, 3, 4, 5, 6, 7],
-        ['', 1, '', 3, 4, 5, 6, 7],
-        ['', 1, 2, 3, 4, 5, 6, 7],
-        ['', 1, 2, 3, 4, 5, 6, 8]
-    ]
+    rows: dataRows
 };
 
 exampleOne.config = {
-    rows: 5,
-    columns: 8,
-    hasHeadColumn: true,
-    isHeadColumnString: true,
+    rows: rows,
+    columns: cols,
+    isHeadColumnString: false,
     hasHeadRow: true,
     isHeadRowString: true,
     canAddRow: true,
@@ -29,6 +31,18 @@ exampleOne.config = {
     emptyValueSymbol: '-',
     hasLetterNumberHeads: true
 };
+
+exampleOne.mapping = {};
+for (var i = 0; i < rows - 1; i++) {
+    for (var j = 0; j < cols; j++) {
+        exampleOne.mapping[i + ' ' + j] = {
+            cells: [[0, j], [1, j]],
+            column: j,
+            id: i,
+            table: "FooBar"
+        };
+    }
+}
 
 // Example Two
 var exampleTwo = {};
@@ -64,5 +78,13 @@ exampleTwo.config = {
 };
 
 // Render
-ReactDOM.render(<Spreadsheet data={exampleOne.data} config={exampleOne.config} cellClasses={exampleOne.cellClasses} />, document.getElementById('exampleOne'));
-ReactDOM.render(<Spreadsheet data={exampleTwo.data} config={exampleTwo.config} cellClasses={exampleTwo.cellClasses} />, document.getElementById('exampleTwo'));
+ReactDOM.render(
+    <Spreadsheet
+        data={exampleOne.data}
+        config={exampleOne.config}
+        cellClasses={exampleOne.cellClasses}
+        mapping={exampleOne.mapping}
+    />,
+    document.getElementById('exampleOne')
+);
+// ReactDOM.render(<Spreadsheet data={exampleTwo.data} config={exampleTwo.config} cellClasses={exampleTwo.cellClasses} />, document.getElementById('exampleTwo'));

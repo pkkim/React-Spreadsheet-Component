@@ -16,9 +16,11 @@ var SpreadsheetComponent = React.createClass({
      */
     getInitialState: function() {
         return {
+            prevSelected: null,
             selected: null,
             lastBlurred: null,
             selectedElement: null,
+            changesToApply: [],
             editing: false
         };
     },
@@ -68,6 +70,7 @@ var SpreadsheetComponent = React.createClass({
                                     key={key}
                                     config={config}
                                     selected={this.state.selected}
+                                    prevSelected={this.state.prevSelected}
                                     editing={this.state.editing}
                                     handleSelectCell={this.handleSelectCell}
                                     handleDoubleClickOnCell={this.handleDoubleClickOnCell}
@@ -242,9 +245,12 @@ var SpreadsheetComponent = React.createClass({
         Dispatcher.publish('cellSelected', cell, this.spreadsheetId);
         $(ReactDOM.findDOMNode(this)).first().focus();
 
-        this.setState({
-            selected: cell,
-            selectedElement: cellElement
+        this.setState(function (prevState, props) {
+            return {
+                prevSelected: prevState.selected,
+                selected: cell,
+                selectedElement: cellElement
+            };
         });
     },
 
@@ -262,11 +268,41 @@ var SpreadsheetComponent = React.createClass({
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
         data.rows[row][column] = newValue;
-        this.setState({
-            data: data
-        });
 
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
+
+        this.setState((prevState, props) => {
+            var i = cell[0] - 1; // because of header row
+            var j = cell[1];
+            var metadata = props.mapping[`${i} ${j}`];
+
+            var changesToApply = prevState.changesToApply;
+            var lastChange = changesToApply[changesToApply.length - 1];
+            var newState = {changesToApply: changesToApply};
+
+            if (lastChange === undefined ||
+                (metadata.table !== lastChange[0][0] ||
+                    metadata.column !== lastChange[0][1] ||
+                    metadata.id !== lastChange[0][2])) {
+                newState.changesToApply.push([
+                    [metadata.table, metadata.column, metadata.id, i, j],
+                    newValue
+                ]);
+            } else {
+                newState.changesToApply[newState.changesToApply.length - 1][1] = newValue
+            }
+            var newChanges = newState.changesToApply;
+            var newLastChange = newChanges[newChanges.length - 1];
+
+            this.applyChange(
+                data.rows,
+                newLastChange[0],
+                newLastChange[1],
+                props.mapping
+            );
+
+            return newState;
+        });
     },
 
     /**
@@ -290,7 +326,28 @@ var SpreadsheetComponent = React.createClass({
             editing: false,
             lastBlurred: cell
         });
+    },
+
+    // New methods for Paul's use here
+    
+    /**
+     * Modifies the incoming array `rows`
+     * @param  {Array: [Array: number]} rows
+     * @param  (document later) changeToApply
+     * @param  (document later) newValue
+     * @param  (document later) mapping
+     */
+    applyChange: function (rows, changeToApply, newValue, mapping) {
+        var i = changeToApply[3];
+        var j = changeToApply[4];
+        var cellsToChange = mapping[`${i} ${j}`].cells;
+
+        cellsToChange.forEach(function (coords) {
+            var iToChange = coords[0];
+            var jToChange = coords[1];
+            rows[iToChange+1][jToChange] = newValue;
+        });
     }
-});
+})
 
 module.exports = SpreadsheetComponent;

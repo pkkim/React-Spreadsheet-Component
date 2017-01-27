@@ -10,6 +10,13 @@ var RowComponent = React.createClass({
      * React Render method
      * @return {[JSX]} [JSX to render]
      */
+    // shouldComponentUpdate: function(nextProps) {
+    //     // return true;
+    //     return (
+    //         nextProps.selected[0] === nextProps.uid ||
+    //         (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
+    //     );
+    // },
     render: function() {
         var config = this.props.config,
             cells = this.props.cells,

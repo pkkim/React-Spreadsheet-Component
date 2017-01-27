@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component 0.5.1 (dev build at Fri, 27 Jan 2017 08:07:45 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 0.1.0 (dev build at Fri, 27 Jan 2017 22:42:24 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -394,6 +394,13 @@ var RowComponent = React.createClass({displayName: "RowComponent",
      * React Render method
      * @return {[JSX]} [JSX to render]
      */
+    // shouldComponentUpdate: function(nextProps) {
+    //     // return true;
+    //     return (
+    //         nextProps.selected[0] === nextProps.uid ||
+    //         (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
+    //     );
+    // },
     render: function() {
         var config = this.props.config,
             cells = this.props.cells,
@@ -431,6 +438,7 @@ var RowComponent = React.createClass({displayName: "RowComponent",
 });
 
 module.exports = RowComponent;
+
 },{"./cell":1,"./helpers":3}],5:[function(require,module,exports){
 "use strict";
 
@@ -450,9 +458,11 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      */
     getInitialState: function() {
         return {
+            prevState: null,
             selected: null,
             lastBlurred: null,
             selectedElement: null,
+            changesToApply: [],
             editing: false
         };
     },
@@ -502,6 +512,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                                     key: key, 
                                     config: config, 
                                     selected: this.state.selected, 
+                                    prevSelected: this.state.prevSelected, 
                                     editing: this.state.editing, 
                                     handleSelectCell: this.handleSelectCell, 
                                     handleDoubleClickOnCell: this.handleDoubleClickOnCell, 
@@ -676,9 +687,12 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
         Dispatcher.publish('cellSelected', cell, this.spreadsheetId);
         $(ReactDOM.findDOMNode(this)).first().focus();
 
-        this.setState({
-            selected: cell,
-            selectedElement: cellElement
+        this.setState(function (prevState, props) {
+            return {
+                prevSelected: prevState.selected,
+                selected: cell,
+                selectedElement: cellElement
+            };
         });
     },
 
@@ -688,7 +702,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      * @param  {object} newValue                         [Value to set]
      */
     handleCellValueChange: function (cell, newValue) {
-        var data = this.props.initialData,
+        var data = this.props.data,
             row = cell[0],
             column = cell[1],
             oldValue = data.rows[row][column];
@@ -696,11 +710,41 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
         data.rows[row][column] = newValue;
-        this.setState({
-            data: data
-        });
 
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
+
+        this.setState(function(prevState, props)  {
+            var i = cell[0] - 1; // because of header row
+            var j = cell[1];
+            var metadata = props.mapping[(i + " " + j)];
+
+            var changesToApply = prevState.changesToApply;
+            var lastChange = changesToApply[changesToApply.length - 1];
+            var newState = {changesToApply: changesToApply};
+
+            if (lastChange === undefined ||
+                (metadata.table !== lastChange[0][0] ||
+                    metadata.column !== lastChange[0][1] ||
+                    metadata.id !== lastChange[0][2])) {
+                newState.changesToApply.push([
+                    [metadata.table, metadata.column, metadata.id, i, j],
+                    newValue
+                ]);
+            } else {
+                newState.changesToApply[newState.changesToApply.length - 1][1] = newValue
+            }
+            var newChanges = newState.changesToApply;
+            var newLastChange = newChanges[newChanges.length - 1];
+
+            this.applyChange(
+                data.rows,
+                newLastChange[0],
+                newLastChange[1],
+                props.mapping
+            );
+
+            return newState;
+        }.bind(this));
     },
 
     /**
@@ -724,8 +768,29 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             editing: false,
             lastBlurred: cell
         });
+    },
+
+    // New methods for Paul's use here
+    
+    /**
+     * Modifies the incoming array `rows`
+     * @param  {Array: [Array: number]} rows
+     * @param  (document later) changeToApply
+     * @param  (document later) newValue
+     * @param  (document later) mapping
+     */
+    applyChange: function (rows, changeToApply, newValue, mapping) {
+        var i = changeToApply[3];
+        var j = changeToApply[4];
+        var cellsToChange = mapping[(i + " " + j)].cells;
+
+        cellsToChange.forEach(function (coords) {
+            var iToChange = coords[0];
+            var jToChange = coords[1];
+            rows[iToChange+1][jToChange] = newValue;
+        });
     }
-});
+})
 
 module.exports = SpreadsheetComponent;
 
