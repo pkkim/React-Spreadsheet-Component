@@ -11,6 +11,10 @@ var RowComponent = React.createClass({
      * @return {[JSX]} [JSX to render]
      */
     shouldComponentUpdate: function(nextProps) {
+        if (nextProps.uid === 0) {
+            return true;
+        }
+
         if (nextProps.selected === null) {
             return true;
         }
@@ -36,43 +40,47 @@ var RowComponent = React.createClass({
         return false;
     },
     render: function() {
-        var config = this.props.config,
-            cells = this.props.cells,
+        var props = this.props;
+        var config = props.config,
+            cells = props.cells,
             columns = [],
-            key, uid, selected, cellClasses, i;
+            key, uid, selected, cellClasses;
 
         if (!config.columns || cells.length === 0) {
             return console.error('Table can\'t be initialized without set number of columsn and no data!');
         }
 
-        for (i = 0; i < cells.length; i = i + 1) {
-            // If a cell is selected, check if it's this one
-            selected = Helpers.equalCells(this.props.selected, [this.props.uid, i]);
-            cellClasses = (this.props.cellClasses && this.props.cellClasses[i]) ? this.props.cellClasses[i] : '';
+        var that = this;
 
-            key = 'row_' + this.props.uid + '_cell_' + i;
-            uid = [this.props.uid, i];
-            var thisI = i;
+        cells.forEach(function (cell, i) {
+            // If a cell is selected, check if it's this one
+            selected = Helpers.equalCells(props.selected, [props.uid, i]);
+            cellClasses = (props.cellClasses && props.cellClasses[i]) ? props.cellClasses[i] : '';
+
+            key = 'row_' + props.uid + '_cell_' + i;
+            uid = [props.uid, i];
             var handleSort = (
-                this.props.handleSort ?
-                function () { this.props.handleSort(thisI) }.bind(this) :
+                props.handleSort ?
+                function () { props.handleSort(i) }.bind(that) :
                 undefined
             );
             columns.push(<CellComponent key={key} 
                                        uid={uid}
-                                       value={cells[i]}
+                                       value={cell}
                                        config={config}
                                        cellClasses={cellClasses}
-                                       onCellValueChange={this.props.onCellValueChange} 
-                                       handleSelectCell={this.props.handleSelectCell}
+                                       onCellValueChange={props.onCellValueChange} 
+                                       handleSelectCell={props.handleSelectCell}
                                        handleSort={handleSort}
-                                       handleDoubleClickOnCell={this.props.handleDoubleClickOnCell}
-                                       handleCellBlur={this.props.handleCellBlur}
-                                       spreadsheetId={this.props.spreadsheetId}
+                                       handleDoubleClickOnCell={props.handleDoubleClickOnCell}
+                                       handleCellBlur={props.handleCellBlur}
+                                       spreadsheetId={props.spreadsheetId}
                                        selected={selected} 
-                                       editing={this.props.editing} />
+                                       sortColumn={props.sortColumn}
+                                       isAscending={props.isAscending}
+                                       editing={props.editing} />
             );
-        }
+        });
 
         return <tr>{columns}</tr>;
     }

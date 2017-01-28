@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 0.2.0 (dev build at Sat, 28 Jan 2017 03:10:58 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 0.2.0 (dev build at Sat, 28 Jan 2017 19:35:53 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -140,14 +140,18 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             selected = (props.selected) ? 'selected' : '',
             uid = props.uid,
             config = props.config || { emptyValueSymbol: ''},
-            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
-            cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value;
 
         // Cases
         var headRow = (uid[0] === 0),
             headColumn = (uid[1] === 0),
             headRowAndEnabled = (config.hasHeadRow && uid[0] === 0),
             headColumnAndEnabled = (config.hasHeadColumn && uid[1] === 0)
+
+        var cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+        if (headRow && props.sortColumn === uid[1]) {
+            cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+        }
 
         // Head Row enabled, cell is in head row
         // Head Column enabled, cell is in head column
@@ -396,6 +400,10 @@ var RowComponent = React.createClass({displayName: "RowComponent",
      * @return {[JSX]} [JSX to render]
      */
     shouldComponentUpdate: function(nextProps) {
+        if (nextProps.uid === 0) {
+            return true;
+        }
+
         if (nextProps.selected === null) {
             return true;
         }
@@ -421,43 +429,47 @@ var RowComponent = React.createClass({displayName: "RowComponent",
         return false;
     },
     render: function() {
-        var config = this.props.config,
-            cells = this.props.cells,
+        var props = this.props;
+        var config = props.config,
+            cells = props.cells,
             columns = [],
-            key, uid, selected, cellClasses, i;
+            key, uid, selected, cellClasses;
 
         if (!config.columns || cells.length === 0) {
             return console.error('Table can\'t be initialized without set number of columsn and no data!');
         }
 
-        for (i = 0; i < cells.length; i = i + 1) {
-            // If a cell is selected, check if it's this one
-            selected = Helpers.equalCells(this.props.selected, [this.props.uid, i]);
-            cellClasses = (this.props.cellClasses && this.props.cellClasses[i]) ? this.props.cellClasses[i] : '';
+        var that = this;
 
-            key = 'row_' + this.props.uid + '_cell_' + i;
-            uid = [this.props.uid, i];
-            var thisI = i;
+        cells.forEach(function (cell, i) {
+            // If a cell is selected, check if it's this one
+            selected = Helpers.equalCells(props.selected, [props.uid, i]);
+            cellClasses = (props.cellClasses && props.cellClasses[i]) ? props.cellClasses[i] : '';
+
+            key = 'row_' + props.uid + '_cell_' + i;
+            uid = [props.uid, i];
             var handleSort = (
-                this.props.handleSort ?
-                function () { this.props.handleSort(thisI) }.bind(this) :
+                props.handleSort ?
+                function () { props.handleSort(i) }.bind(that) :
                 undefined
             );
             columns.push(React.createElement(CellComponent, {key: key, 
                                        uid: uid, 
-                                       value: cells[i], 
+                                       value: cell, 
                                        config: config, 
                                        cellClasses: cellClasses, 
-                                       onCellValueChange: this.props.onCellValueChange, 
-                                       handleSelectCell: this.props.handleSelectCell, 
+                                       onCellValueChange: props.onCellValueChange, 
+                                       handleSelectCell: props.handleSelectCell, 
                                        handleSort: handleSort, 
-                                       handleDoubleClickOnCell: this.props.handleDoubleClickOnCell, 
-                                       handleCellBlur: this.props.handleCellBlur, 
-                                       spreadsheetId: this.props.spreadsheetId, 
+                                       handleDoubleClickOnCell: props.handleDoubleClickOnCell, 
+                                       handleCellBlur: props.handleCellBlur, 
+                                       spreadsheetId: props.spreadsheetId, 
                                        selected: selected, 
-                                       editing: this.props.editing})
+                                       sortColumn: props.sortColumn, 
+                                       isAscending: props.isAscending, 
+                                       editing: props.editing})
             );
-        }
+        });
 
         return React.createElement("tr", null, columns);
     }
@@ -554,6 +566,8 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                                     onCellValueChange: this.handleCellValueChange, 
                                     spreadsheetId: this.spreadsheetId, 
                                     idMapping: this.props.idMappings[i - 1], 
+                                    sortColumn: this.state.sortColumn, 
+                                    isAscending: this.state.isAscending, 
                                     className: "cellComponent"})
             if (i === 0) {
                 headerRow = row;

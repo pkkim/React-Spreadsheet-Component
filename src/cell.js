@@ -135,14 +135,18 @@ var CellComponent = React.createClass({
             selected = (props.selected) ? 'selected' : '',
             uid = props.uid,
             config = props.config || { emptyValueSymbol: ''},
-            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
-            cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value;
 
         // Cases
         var headRow = (uid[0] === 0),
             headColumn = (uid[1] === 0),
             headRowAndEnabled = (config.hasHeadRow && uid[0] === 0),
             headColumnAndEnabled = (config.hasHeadColumn && uid[1] === 0)
+
+        var cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+        if (headRow && props.sortColumn === uid[1]) {
+            cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+        }
 
         // Head Row enabled, cell is in head row
         // Head Column enabled, cell is in head column

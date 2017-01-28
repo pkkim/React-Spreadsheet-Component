@@ -86,6 +86,8 @@ var SpreadsheetComponent = React.createClass({
                                     onCellValueChange={this.handleCellValueChange}
                                     spreadsheetId={this.spreadsheetId}
                                     idMapping={this.props.idMappings[i - 1]}
+                                    sortColumn={this.state.sortColumn}
+                                    isAscending={this.state.isAscending}
                                     className="cellComponent" />
             if (i === 0) {
                 headerRow = row;
