@@ -10,13 +10,27 @@ var RowComponent = React.createClass({
      * React Render method
      * @return {[JSX]} [JSX to render]
      */
-    // shouldComponentUpdate: function(nextProps) {
-    //     // return true;
-    //     return (
-    //         nextProps.selected[0] === nextProps.uid ||
-    //         (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
-    //     );
-    // },
+    shouldComponentUpdate: function(nextProps) {
+        // Update cell highlighter
+        if (
+            nextProps.selected[0] === nextProps.uid ||
+            (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
+        ) {
+            return true;
+        }
+
+        if (nextProps.lastChange !== undefined && nextProps.idMapping !== undefined) {
+            var lastChangeTable = nextProps.lastChange[0][0];
+            var lastChangeId = nextProps.lastChange[0][2];
+            var idsForTable = nextProps.idMapping[lastChangeTable];
+            if (idsForTable !== undefined &&
+                    idsForTable.indexOf(lastChangeId) !== undefined) {
+                return true;
+            }
+        }
+        
+        return false;
+    },
     render: function() {
         var config = this.props.config,
             cells = this.props.cells,

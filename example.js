@@ -7,7 +7,7 @@ var Spreadsheet = require('./lib/spreadsheet');
 // Example One
 var exampleOne = {};
 
-var rows = 3;
+var rows = 5;
 var cols = 6;
 var dataRows = new Array(rows);
 for (var i = 0; i < rows; i++) {
@@ -36,13 +36,19 @@ exampleOne.mapping = {};
 for (var i = 0; i < rows - 1; i++) {
     for (var j = 0; j < cols; j++) {
         exampleOne.mapping[i + ' ' + j] = {
-            cells: [[0, j], [1, j]],
+            cells: [[Math.floor(i / 2) * 2, j], [Math.floor(i / 2) * 2 + 1, j]],
             column: j,
-            id: i,
+            id: Math.floor(i / 2) * 2,
             table: "FooBar"
         };
     }
 }
+
+exampleOne.idMappings = new Array(rows - 1);
+for (var i = 0; i < rows - 1; i++) {
+    exampleOne.idMappings[i] = {FooBar: [Math.floor(i / 2) * 2 ]};
+}
+
 
 // Example Two
 var exampleTwo = {};
@@ -84,6 +90,7 @@ ReactDOM.render(
         config={exampleOne.config}
         cellClasses={exampleOne.cellClasses}
         mapping={exampleOne.mapping}
+        idMappings={exampleOne.idMappings}
     />,
     document.getElementById('exampleOne')
 );

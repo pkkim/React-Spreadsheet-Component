@@ -59,6 +59,8 @@ var SpreadsheetComponent = React.createClass({
             return console.error('Table Component: Number of columns not defined in both data and config!');
         }
 
+        var changesToApply = this.state.changesToApply;
+        var lastChange = changesToApply[changesToApply.length - 1];
         // Create Rows
         for (i = 0; i < data.rows.length; i = i + 1) {
             key = 'row_' + i;
@@ -71,12 +73,14 @@ var SpreadsheetComponent = React.createClass({
                                     config={config}
                                     selected={this.state.selected}
                                     prevSelected={this.state.prevSelected}
+                                    lastChange={lastChange}
                                     editing={this.state.editing}
                                     handleSelectCell={this.handleSelectCell}
                                     handleDoubleClickOnCell={this.handleDoubleClickOnCell}
                                     handleCellBlur={this.handleCellBlur}
                                     onCellValueChange={this.handleCellValueChange}
                                     spreadsheetId={this.spreadsheetId}
+                                    idMapping={this.props.idMappings[i - 1]}
                                     className="cellComponent" />);
         }
 

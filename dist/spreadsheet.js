@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 0.1.0 (dev build at Fri, 27 Jan 2017 22:42:24 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 0.1.0 (dev build at Sat, 28 Jan 2017 00:26:53 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -394,13 +394,27 @@ var RowComponent = React.createClass({displayName: "RowComponent",
      * React Render method
      * @return {[JSX]} [JSX to render]
      */
-    // shouldComponentUpdate: function(nextProps) {
-    //     // return true;
-    //     return (
-    //         nextProps.selected[0] === nextProps.uid ||
-    //         (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
-    //     );
-    // },
+    shouldComponentUpdate: function(nextProps) {
+        // Update cell highlighter
+        if (
+            nextProps.selected[0] === nextProps.uid ||
+            (nextProps.prevSelected && nextProps.prevSelected[0] === nextProps.uid)
+        ) {
+            return true;
+        }
+
+        if (nextProps.lastChange !== undefined && nextProps.idMapping !== undefined) {
+            var lastChangeTable = nextProps.lastChange[0][0];
+            var lastChangeId = nextProps.lastChange[0][2];
+            var idsForTable = nextProps.idMapping[lastChangeTable];
+            if (idsForTable !== undefined &&
+                    idsForTable.indexOf(lastChangeId) !== undefined) {
+                return true;
+            }
+        }
+        
+        return false;
+    },
     render: function() {
         var config = this.props.config,
             cells = this.props.cells,
@@ -458,7 +472,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      */
     getInitialState: function() {
         return {
-            prevState: null,
+            prevSelected: null,
             selected: null,
             lastBlurred: null,
             selectedElement: null,
@@ -501,6 +515,8 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             return console.error('Table Component: Number of columns not defined in both data and config!');
         }
 
+        var changesToApply = this.state.changesToApply;
+        var lastChange = changesToApply[changesToApply.length - 1];
         // Create Rows
         for (i = 0; i < data.rows.length; i = i + 1) {
             key = 'row_' + i;
@@ -513,12 +529,14 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                                     config: config, 
                                     selected: this.state.selected, 
                                     prevSelected: this.state.prevSelected, 
+                                    lastChange: lastChange, 
                                     editing: this.state.editing, 
                                     handleSelectCell: this.handleSelectCell, 
                                     handleDoubleClickOnCell: this.handleDoubleClickOnCell, 
                                     handleCellBlur: this.handleCellBlur, 
                                     onCellValueChange: this.handleCellValueChange, 
                                     spreadsheetId: this.spreadsheetId, 
+                                    idMapping: this.props.idMappings[i - 1], 
                                     className: "cellComponent"}));
         }
 
