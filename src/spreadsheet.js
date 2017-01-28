@@ -21,7 +21,9 @@ var SpreadsheetComponent = React.createClass({
             lastBlurred: null,
             selectedElement: null,
             changesToApply: [],
-            editing: false
+            editing: false,
+            sortColumn: undefined,
+            isAscending: true
         };
     },
 
@@ -62,11 +64,13 @@ var SpreadsheetComponent = React.createClass({
         var changesToApply = this.state.changesToApply;
         var lastChange = changesToApply[changesToApply.length - 1];
         // Create Rows
+        var headerRow;
         for (i = 0; i < data.rows.length; i = i + 1) {
             key = 'row_' + i;
             cellClasses = (_cellClasses && _cellClasses.rows && _cellClasses.rows[i]) ? _cellClasses.rows[i] : null;
+            var handleSort = i === 0 ? this.handleSort : undefined;
 
-            rows.push(<RowComponent cells={data.rows[i]}
+            var row = <RowComponent cells={data.rows[i]}
                                     cellClasses={cellClasses}
                                     uid={i}
                                     key={key}
@@ -76,17 +80,39 @@ var SpreadsheetComponent = React.createClass({
                                     lastChange={lastChange}
                                     editing={this.state.editing}
                                     handleSelectCell={this.handleSelectCell}
+                                    handleSort={handleSort}
                                     handleDoubleClickOnCell={this.handleDoubleClickOnCell}
                                     handleCellBlur={this.handleCellBlur}
                                     onCellValueChange={this.handleCellValueChange}
                                     spreadsheetId={this.spreadsheetId}
                                     idMapping={this.props.idMappings[i - 1]}
-                                    className="cellComponent" />);
+                                    className="cellComponent" />
+            if (i === 0) {
+                headerRow = row;
+            } else {
+                rows.push(row);
+            }
+        }
+
+        if (this.state.sortColumn !== undefined) {
+            var sortColumn = this.state.sortColumn;
+            var isAscending = this.state.isAscending;
+            rows.sort(function(rowA, rowB) {
+                if (rowA.props.cells[sortColumn] <
+                    rowB.props.cells[sortColumn]) {
+                    return isAscending ? -1 : 1;
+                } else if (rowA.props.cells[sortColumn] <
+                    rowB.props.cells[sortColumn]) {
+                    return isAscending ? 1 : -1;
+                }
+                return 0;
+            });
         }
 
         return (
             <table tabIndex="0" data-spreasheet-id={this.spreadsheetId}>
                 <tbody>
+                    {headerRow}
                     {rows}
                 </tbody>
             </table>
@@ -351,6 +377,26 @@ var SpreadsheetComponent = React.createClass({
             var jToChange = coords[1];
             rows[iToChange+1][jToChange] = newValue;
         });
+    },
+
+    /**
+     * Sets sortColumn and isAscending
+     */
+    handleSort: function (columnIndex) {
+        if (this.state.sortColumn === columnIndex) {
+            this.setState(
+                function (prevState, props) {
+                    return {
+                        isAscending: !prevState.isAscending
+                    }
+                }
+            );
+        } else {
+            this.setState({
+                sortColumn: columnIndex,
+                isAscending: true,
+            });
+        }
     }
 })
 

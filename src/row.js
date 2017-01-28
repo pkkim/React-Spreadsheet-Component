@@ -11,6 +11,10 @@ var RowComponent = React.createClass({
      * @return {[JSX]} [JSX to render]
      */
     shouldComponentUpdate: function(nextProps) {
+        if (nextProps.selected === null) {
+            return true;
+        }
+
         // Update cell highlighter
         if (
             nextProps.selected[0] === nextProps.uid ||
@@ -48,6 +52,12 @@ var RowComponent = React.createClass({
 
             key = 'row_' + this.props.uid + '_cell_' + i;
             uid = [this.props.uid, i];
+            var thisI = i;
+            var handleSort = (
+                this.props.handleSort ?
+                function () { this.props.handleSort(thisI) }.bind(this) :
+                undefined
+            );
             columns.push(<CellComponent key={key} 
                                        uid={uid}
                                        value={cells[i]}
@@ -55,6 +65,7 @@ var RowComponent = React.createClass({
                                        cellClasses={cellClasses}
                                        onCellValueChange={this.props.onCellValueChange} 
                                        handleSelectCell={this.props.handleSelectCell}
+                                       handleSort={handleSort}
                                        handleDoubleClickOnCell={this.props.handleDoubleClickOnCell}
                                        handleCellBlur={this.props.handleCellBlur}
                                        spreadsheetId={this.props.spreadsheetId}

@@ -90,6 +90,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleHeadClick: function (e) {
+        this.props.handleSort();
         var cellElement = ReactDOM.findDOMNode(this.refs[this.props.uid.join('_')]);
         Dispatcher.publish('headCellClicked', cellElement, this.props.spreadsheetId);
     },
