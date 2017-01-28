@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 0.2.0 (dev build at Sat, 28 Jan 2017 19:35:53 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 0.3.0 (dev build at Sat, 28 Jan 2017 20:28:47 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -592,10 +592,13 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
         }
 
         return (
-            React.createElement("table", {tabIndex: "0", "data-spreasheet-id": this.spreadsheetId}, 
-                React.createElement("tbody", null, 
-                    headerRow, 
-                    rows
+            React.createElement("div", {className: "spreadsheet-holder"}, 
+                React.createElement("button", {onClick: this.sendUpdate}, "Save changes to database"), 
+                React.createElement("table", {tabIndex: "0", "data-spreadsheet-id": this.spreadsheetId}, 
+                    React.createElement("tbody", null, 
+                        headerRow, 
+                        rows
+                    )
                 )
             )
         );
@@ -879,6 +882,38 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                 isAscending: true,
             });
         }
+    },
+
+    /**
+     * Sends update
+     */
+    sendUpdate: function () {
+        var updateConfig = this.props.config.update;
+        if (updateConfig === undefined) {
+            console.error("config prop must have an 'update' property");
+            return;
+        }
+
+        var endpoint = updateConfig.endpoint;
+        if (!endpoint) {
+            console.error("Invalid endpoint: " + endpoint);
+            return;
+        }
+        var success = updateConfig.success || function () {};
+        var error = updateConfig.error || function () {};
+        var complete = updateConfig.complete || function () {};
+
+        $.ajax({
+            url: endpoint,
+            type: 'post',
+            data: JSON.stringify(this.state.changesToApply),
+            success: (function (data) {
+                success(data);
+                this.setState({changesToApply: []})
+            }),
+            error: error,
+            complete: complete
+        })
     }
 })
 

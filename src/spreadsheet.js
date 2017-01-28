@@ -112,12 +112,15 @@ var SpreadsheetComponent = React.createClass({
         }
 
         return (
-            <table tabIndex="0" data-spreasheet-id={this.spreadsheetId}>
-                <tbody>
-                    {headerRow}
-                    {rows}
-                </tbody>
-            </table>
+            <div className={"spreadsheet-holder"}>
+                <button onClick={this.sendUpdate}>Save changes to database</button>
+                <table tabIndex="0" data-spreadsheet-id={this.spreadsheetId}>
+                    <tbody>
+                        {headerRow}
+                        {rows}
+                    </tbody>
+                </table>
+            </div>
         );
     },
 
@@ -399,6 +402,38 @@ var SpreadsheetComponent = React.createClass({
                 isAscending: true,
             });
         }
+    },
+
+    /**
+     * Sends update
+     */
+    sendUpdate: function () {
+        var updateConfig = this.props.config.update;
+        if (updateConfig === undefined) {
+            console.error("config prop must have an 'update' property");
+            return;
+        }
+
+        var endpoint = updateConfig.endpoint;
+        if (!endpoint) {
+            console.error("Invalid endpoint: " + endpoint);
+            return;
+        }
+        var success = updateConfig.success || function () {};
+        var error = updateConfig.error || function () {};
+        var complete = updateConfig.complete || function () {};
+
+        $.ajax({
+            url: endpoint,
+            type: 'post',
+            data: JSON.stringify(this.state.changesToApply),
+            success: (function (data) {
+                success(data);
+                this.setState({changesToApply: []})
+            }),
+            error: error,
+            complete: complete
+        })
     }
 })
 

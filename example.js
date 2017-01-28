@@ -29,7 +29,16 @@ exampleOne.config = {
     canAddRow: true,
     canAddColumn: true,
     emptyValueSymbol: '-',
-    hasLetterNumberHeads: true
+    hasLetterNumberHeads: true,
+    update: {
+        endpoint: 'https://www.google.com',
+        complete: function (jqXHR, textStatus) {
+            console.log(jqXHR);
+            console.log(textStatus);
+        },
+        success: function () { console.log('success'); },
+        error: function () { console.error ('xhr failed') }
+    }
 };
 
 exampleOne.mapping = {};
