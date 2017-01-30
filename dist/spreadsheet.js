@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.0.0 (dev build at Mon, 30 Jan 2017 23:26:28 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.0.0 (dev build at Mon, 30 Jan 2017 23:58:48 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -574,9 +574,6 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
         var lastChange = changesToApply[changesToApply.length - 1];
         // Create Rows
         var headerRow;
-        if (this.state.editing) {
-            console.log('')
-        }
         for (i = 0; i < data.rows.length; i = i + 1) {
             key = 'row_' + i;
             cellClasses = (finalCellClasses && finalCellClasses.rows) ? finalCellClasses.rows[i] : null;
@@ -807,7 +804,6 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
      * @param  {object} newValue                         [Value to set]
      */
     handleCellValueChange: function (cell, newValue) {
-        console.log('handleCellValueChange, newValue: ' + newValue)
         var data = this.props.data,
             row = cell[0],
             column = cell[1],
@@ -815,11 +811,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
 
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
-        if (newValue === undefined) {
-            console.log("newValue is undefined")
-        }
         data.rows[row][column] = newValue;
-        var y = newValue;
 
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
 
@@ -838,7 +830,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                     metadata.id !== lastChange[0][2])) {
                 newState.changesToApply.push([
                     [metadata.table, metadata.column, metadata.id, i, j],
-                    y
+                    newValue
                 ]);
             } else {
                 newState.changesToApply[newState.changesToApply.length - 1][1] = newValue
@@ -851,7 +843,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             this.applyChange(
                 data.rows,
                 changeToApply,
-                y,
+                newValue,
                 props.mapping
             )
 
@@ -908,9 +900,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             cellsToChange.forEach(function (coords) {
                 var iToChange = coords[0];
                 var jToChange = coords[1];
-                if (!(changeToApply[3] === iToChange+1 && changeToApply[4] === jToChange)) {
-                    rows[iToChange+1][jToChange] = newValue;
-                }
+                rows[iToChange+1][jToChange] = newValue;
 
                 var classes = newAddedCellClasses[iToChange+1][jToChange];
                 if (!classes.includes('sp-dirty')) {
