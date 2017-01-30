@@ -6,10 +6,6 @@ var CellComponent = require('./cell');
 var Helpers = require('./helpers');
 
 var RowComponent = React.createClass({    
-    /**
-     * React Render method
-     * @return {[JSX]} [JSX to render]
-     */
     shouldComponentUpdate: function(nextProps) {
         if (nextProps.uid === 0) {
             return true;
@@ -36,9 +32,18 @@ var RowComponent = React.createClass({
                 return true;
             }
         }
+
+        var newLastChange = nextProps.lastChange;
+        if (newLastChange === undefined && this.props.lastChange !== undefined) {
+            return true;
+        }
         
         return false;
     },
+    /**
+     * React Render method
+     * @return {[JSX]} [JSX to render]
+     */
     render: function() {
         var props = this.props;
         var config = props.config,
@@ -55,7 +60,7 @@ var RowComponent = React.createClass({
         cells.forEach(function (cell, i) {
             // If a cell is selected, check if it's this one
             selected = Helpers.equalCells(props.selected, [props.uid, i]);
-            cellClasses = (props.cellClasses && props.cellClasses[i]) ? props.cellClasses[i] : '';
+            cellClasses = (props.cellClasses) ? props.cellClasses[i] : [];
 
             key = 'row_' + props.uid + '_cell_' + i;
             uid = [props.uid, i];

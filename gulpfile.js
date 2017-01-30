@@ -69,7 +69,7 @@ gulp.task('bundle-js', ['lint-js'], function () {
 });
 
 gulp.task('watch', function () {
-    gulp.watch(jsSrcPaths, ['bundle-js']);
+    gulp.watch(jsSrcPaths, ['bundle-js', 'example']);
 });
 
 gulp.task('connect', function () {

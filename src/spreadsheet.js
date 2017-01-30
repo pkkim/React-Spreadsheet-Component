@@ -15,6 +15,14 @@ var SpreadsheetComponent = React.createClass({
      * React 'getInitialState' method
      */
     getInitialState: function() {
+        var addedCellClasses = new Array(this.props.config.rows);
+        for (var i = 0; i < this.props.config.rows; i++) {
+            var arr = new Array(this.props.config.columns);
+            for (var j = 0; j < this.props.config.columns; j++) {
+                arr[j] = [];
+            }
+            addedCellClasses[i] = arr;
+        }
         return {
             prevSelected: null,
             selected: null,
@@ -23,7 +31,8 @@ var SpreadsheetComponent = React.createClass({
             changesToApply: [],
             editing: false,
             sortColumn: undefined,
-            isAscending: true
+            isAscending: true,
+            addedCellClasses: addedCellClasses
         };
     },
 
@@ -61,13 +70,31 @@ var SpreadsheetComponent = React.createClass({
             return console.error('Table Component: Number of columns not defined in both data and config!');
         }
 
+        var finalCellClasses;
+        if (_cellClasses === undefined) {
+            finalCellClasses = {rows: this.state.addedCellClasses};
+        } else {
+            finalCellClasses = {rows: new Array(_cellClasses.rows.length)};
+            _cellClasses.rows.forEach((row, i) => {
+                finalCellClasses.rows[i] = new Array(row.length);
+                row.forEach((cell, j) => {
+                    finalCellClasses.rows[i][j] = (
+                        cell + ' ' + this.state.addedCellClasses[i][j].join(' ')
+                    );
+                });
+            });
+        }
+
         var changesToApply = this.state.changesToApply;
         var lastChange = changesToApply[changesToApply.length - 1];
         // Create Rows
         var headerRow;
+        if (this.state.editing) {
+            console.log('')
+        }
         for (i = 0; i < data.rows.length; i = i + 1) {
             key = 'row_' + i;
-            cellClasses = (_cellClasses && _cellClasses.rows && _cellClasses.rows[i]) ? _cellClasses.rows[i] : null;
+            cellClasses = (finalCellClasses && finalCellClasses.rows) ? finalCellClasses.rows[i] : null;
             var handleSort = i === 0 ? this.handleSort : undefined;
 
             var row = <RowComponent cells={data.rows[i]}
@@ -295,6 +322,7 @@ var SpreadsheetComponent = React.createClass({
      * @param  {object} newValue                         [Value to set]
      */
     handleCellValueChange: function (cell, newValue) {
+        console.log('handleCellValueChange, newValue: ' + newValue)
         var data = this.props.data,
             row = cell[0],
             column = cell[1],
@@ -302,7 +330,11 @@ var SpreadsheetComponent = React.createClass({
 
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
+        if (newValue === undefined) {
+            console.log("newValue is undefined")
+        }
         data.rows[row][column] = newValue;
+        var y = newValue;
 
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
 
@@ -321,7 +353,7 @@ var SpreadsheetComponent = React.createClass({
                     metadata.id !== lastChange[0][2])) {
                 newState.changesToApply.push([
                     [metadata.table, metadata.column, metadata.id, i, j],
-                    newValue
+                    y
                 ]);
             } else {
                 newState.changesToApply[newState.changesToApply.length - 1][1] = newValue
@@ -329,12 +361,16 @@ var SpreadsheetComponent = React.createClass({
             var newChanges = newState.changesToApply;
             var newLastChange = newChanges[newChanges.length - 1];
 
+            var changeToApply = newLastChange[0];
+
             this.applyChange(
                 data.rows,
-                newLastChange[0],
-                newLastChange[1],
+                changeToApply,
+                y,
                 props.mapping
-            );
+            )
+
+            // newState.addedCellClasses = newAddedCellClasses;
 
             return newState;
         });
@@ -373,14 +409,33 @@ var SpreadsheetComponent = React.createClass({
      * @param  (document later) mapping
      */
     applyChange: function (rows, changeToApply, newValue, mapping) {
-        var i = changeToApply[3];
-        var j = changeToApply[4];
-        var cellsToChange = mapping[`${i} ${j}`].cells;
+        this.setState(function (prevState, props) {
+            // Does two things: sets the new cell content, and adds the "dirty"
+            // style to affected cells if not already present
+            var prevAddedCellClasses = prevState.addedCellClasses;
+            var newAddedCellClasses = new Array(prevAddedCellClasses.length);
+            prevAddedCellClasses.forEach(function (rowClasses, i) {
+                newAddedCellClasses[i] = rowClasses.slice();
+            });
+            var cellsToChange = props.mapping[
+                `${changeToApply[3]} ${changeToApply[4]}`
+            ].cells;
+            cellsToChange.forEach(function (coords) {
+                var iToChange = coords[0];
+                var jToChange = coords[1];
+                if (!(changeToApply[3] === iToChange+1 && changeToApply[4] === jToChange)) {
+                    rows[iToChange+1][jToChange] = newValue;
+                }
 
-        cellsToChange.forEach(function (coords) {
-            var iToChange = coords[0];
-            var jToChange = coords[1];
-            rows[iToChange+1][jToChange] = newValue;
+                var classes = newAddedCellClasses[iToChange+1][jToChange];
+                if (!classes.includes('sp-dirty')) {
+                    newAddedCellClasses[iToChange+1][jToChange].push(
+                        'sp-dirty'
+                    );
+                }
+            });
+
+            return {addedCellClasses: newAddedCellClasses}
         });
     },
 
@@ -402,6 +457,33 @@ var SpreadsheetComponent = React.createClass({
                 isAscending: true,
             });
         }
+    },
+
+    /**
+     * Mutates `classes` to remove "sp-dirty".
+     *
+     * TODO: Maybe make this return a copy so it's clearer.
+     */
+    removeDirtyClass: function (classes) {
+        classes.forEach(function (rowClasses) {
+            rowClasses.forEach(function (cellClasses) {
+                var dirtyIndex = cellClasses.indexOf("sp-dirty");
+                if (dirtyIndex !== undefined) {
+                    cellClasses.splice(dirtyIndex, 1);
+                }
+            })
+        });
+    },
+
+    afterDbUpdateSuccess: function (data, textStatus, jqXHR) {
+        this.setState(function (prevState) {
+            var addedCellClasses = prevState.addedCellClasses;
+            this.removeDirtyClass(addedCellClasses);
+            return {
+                changesToApply: [],
+                addedCellClasses: addedCellClasses
+            };
+        });
     },
 
     /**
@@ -427,12 +509,13 @@ var SpreadsheetComponent = React.createClass({
             url: endpoint,
             type: 'post',
             data: JSON.stringify(this.state.changesToApply),
-            success: (function (data) {
-                success(data);
-                this.setState({changesToApply: []})
-            }),
+            success: success,
             error: error,
-            complete: complete
+            complete: [
+                complete,
+                // TODO move the below to `success`!
+                this.afterDbUpdateSuccess.bind(this),
+            ]
         })
     }
 })

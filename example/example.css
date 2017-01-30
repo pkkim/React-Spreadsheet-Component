@@ -96,3 +96,7 @@ div#exampleTwo .purple {
 div#exampleTwo .yellow {
     border-left: 13px solid #FF9E39;
 }
+
+.sp-dirty {
+	background: #FFDDDD;
+}
