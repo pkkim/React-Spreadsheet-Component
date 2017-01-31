@@ -498,7 +498,7 @@ var SpreadsheetComponent = React.createClass({
         $.ajax({
             url: endpoint,
             type: 'post',
-            data: JSON.stringify(this.state.changesToApply),
+            data: {q: JSON.stringify(this.state.changesToApply)},
             success: success,
             error: error,
             complete: [
