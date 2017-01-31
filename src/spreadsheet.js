@@ -499,13 +499,9 @@ var SpreadsheetComponent = React.createClass({
             url: endpoint,
             type: 'post',
             data: {q: JSON.stringify(this.state.changesToApply)},
-            success: success,
+            success: [success, this.afterDbUpdateSuccess.bind(this)],
             error: error,
-            complete: [
-                complete,
-                // TODO move the below to `success`!
-                this.afterDbUpdateSuccess.bind(this),
-            ]
+            complete: complete,
         })
     }
 })
