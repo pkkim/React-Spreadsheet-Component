@@ -1,7 +1,7 @@
 {
   "name": "react-spreadsheet-component-pkkim-fork",
   "description": "A Spreadsheet Component for ReactJS (forked by Paul Kim)",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "license": "MIT",
   "repository": {
     "type": "git",
