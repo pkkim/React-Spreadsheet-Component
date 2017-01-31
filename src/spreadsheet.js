@@ -127,7 +127,7 @@ var SpreadsheetComponent = React.createClass({
                 if (rowA.props.cells[sortColumn] <
                     rowB.props.cells[sortColumn]) {
                     return isAscending ? -1 : 1;
-                } else if (rowA.props.cells[sortColumn] <
+                } else if (rowA.props.cells[sortColumn] >
                     rowB.props.cells[sortColumn]) {
                     return isAscending ? 1 : -1;
                 }
@@ -500,7 +500,7 @@ var SpreadsheetComponent = React.createClass({
         $.ajax({
             url: endpoint,
             beforeSend: (function (jqXHR) {
-                jqXHR.setRequestHeader('X-CSRF-Token', csrfToken);
+                jqXHR.setRequestHeader('X-CSRFToken', csrfToken);
             }),
             type: 'post',
             data: {q: JSON.stringify(this.state.changesToApply)},
