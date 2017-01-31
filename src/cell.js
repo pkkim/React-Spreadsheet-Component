@@ -144,8 +144,12 @@ var CellComponent = React.createClass({
             headColumnAndEnabled = (config.hasHeadColumn && uid[1] === 0)
 
         var cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
-        if (headRow && props.sortColumn === uid[1]) {
-            cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+        if (headRow) {
+            if (props.sortColumn === uid[1]) {
+                cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+            } else {
+                cellClasses = cellClasses + ' ' + 'sp-asc-desc';
+            }
         }
 
         // Head Row enabled, cell is in head row

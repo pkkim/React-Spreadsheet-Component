@@ -100,3 +100,15 @@ div#exampleTwo .yellow {
 .sp-dirty {
 	background: #FFDDDD;
 }
+
+.sp-asc {
+	background: #FFDDDD;
+}
+
+.sp-desc {
+	background: #DDFFDD;
+}
+
+.sp-asc-desc {
+	background: #DDDDFF;
+}
