@@ -69,8 +69,10 @@ var RowComponent = React.createClass({
                 function () { props.handleSort(i) }.bind(that) :
                 undefined
             );
+            var locked = props.lockedColumns.indexOf(i) !== -1;
             columns.push(<CellComponent key={key} 
                                        uid={uid}
+                                       locked={locked}
                                        value={cell}
                                        config={config}
                                        cellClasses={cellClasses}

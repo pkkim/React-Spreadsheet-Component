@@ -96,6 +96,7 @@ var SpreadsheetComponent = React.createClass({
 
             var row = <RowComponent cells={data.rows[i]}
                                     cellClasses={cellClasses}
+                                    lockedColumns={this.props.lockedColumns}
                                     uid={i}
                                     key={key}
                                     config={config}

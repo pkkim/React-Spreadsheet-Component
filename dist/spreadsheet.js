@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.4.1 (dev build at Tue, 31 Jan 2017 15:03:52 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.5.0 (dev build at Tue, 31 Jan 2017 22:39:13 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -33,13 +33,19 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             ref = 'input_' + props.uid.join('_'),
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
-            cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? props.cellClasses + ' ' + selected : selected,
-            cellContent;
+            cellClasses = ((props.cellClasses) ?
+                props.cellClasses.concat(selected) :
+                [selected]);
+        var cellContent;
 
         // Check if header - if yes, render it
         var header = this.renderHeader();
         if (header) {
             return header;
+        }
+
+        if (this.props.locked) {
+            cellClasses.push('sp-locked');
         }
 
         // If not a header, check for editing and return
@@ -54,7 +60,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
         }
 
         return (
-            React.createElement("td", {className: cellClasses, ref: props.uid.join('_')}, 
+            React.createElement("td", {className: cellClasses.join(' '), ref: props.uid.join('_')}, 
                 React.createElement("div", {className: "reactTableCell"}, 
                     cellContent, 
                     React.createElement("span", {onDoubleClick: this.handleDoubleClick, onClick: this.handleClick}, 
@@ -106,6 +112,9 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      */
     handleDoubleClick: function (e) {
         e.preventDefault();
+        if (this.props.locked) {
+            return;
+        }
         this.props.handleDoubleClickOnCell(this.props.uid);
     },
 
@@ -148,12 +157,18 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             headRowAndEnabled = (config.hasHeadRow && uid[0] === 0),
             headColumnAndEnabled = (config.hasHeadColumn && uid[1] === 0)
 
-        var cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+        var cellClasses = ((props.cellClasses && props.cellClasses.length > 0) ?
+            this.props.cellClasses.concat([selected]) :
+            [selected]);
         if (headRow) {
             if (props.sortColumn === uid[1]) {
-                cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+                cellClasses.push(props.isAscending ? 'sp-asc' : 'sp-desc');
             } else {
-                cellClasses = cellClasses + ' ' + 'sp-asc-desc';
+                cellClasses.push('sp-asc-desc');
+            }
+
+            if (props.locked) {
+                cellClasses.push('sp-locked-head');
             }
         }
 
@@ -168,7 +183,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
 
             if ((config.isHeadRowString && headRow) || (config.isHeadColumnString && headColumn)) {
                 return (
-                    React.createElement("th", {className: cellClasses, ref: this.props.uid.join('_')}, 
+                    React.createElement("th", {className: cellClasses.join(' '), ref: this.props.uid.join('_')}, 
                         React.createElement("div", null, 
                             React.createElement("span", {onClick: this.handleHeadClick}, 
                                 displayValue
@@ -462,8 +477,10 @@ var RowComponent = React.createClass({displayName: "RowComponent",
                 function () { props.handleSort(i) }.bind(that) :
                 undefined
             );
+            var locked = props.lockedColumns.indexOf(i) !== -1;
             columns.push(React.createElement(CellComponent, {key: key, 
                                        uid: uid, 
+                                       locked: locked, 
                                        value: cell, 
                                        config: config, 
                                        cellClasses: cellClasses, 
@@ -585,6 +602,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
 
             var row = React.createElement(RowComponent, {cells: data.rows[i], 
                                     cellClasses: cellClasses, 
+                                    lockedColumns: this.props.lockedColumns, 
                                     uid: i, 
                                     key: key, 
                                     config: config, 

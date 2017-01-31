@@ -100,6 +100,7 @@ ReactDOM.render(
         cellClasses={exampleOne.cellClasses}
         mapping={exampleOne.mapping}
         idMappings={exampleOne.idMappings}
+        lockedColumns={[1]}
     />,
     document.getElementById('exampleOne')
 );

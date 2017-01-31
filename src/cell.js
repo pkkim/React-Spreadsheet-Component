@@ -28,13 +28,19 @@ var CellComponent = React.createClass({
             ref = 'input_' + props.uid.join('_'),
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
-            cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? props.cellClasses + ' ' + selected : selected,
-            cellContent;
+            cellClasses = ((props.cellClasses) ?
+                props.cellClasses.concat(selected) :
+                [selected]);
+        var cellContent;
 
         // Check if header - if yes, render it
         var header = this.renderHeader();
         if (header) {
             return header;
+        }
+
+        if (this.props.locked) {
+            cellClasses.push('sp-locked');
         }
 
         // If not a header, check for editing and return
@@ -49,7 +55,7 @@ var CellComponent = React.createClass({
         }
 
         return (
-            <td className={cellClasses} ref={props.uid.join('_')}>
+            <td className={cellClasses.join(' ')} ref={props.uid.join('_')}>
                 <div className="reactTableCell">
                     {cellContent}
                     <span onDoubleClick={this.handleDoubleClick} onClick={this.handleClick}>
@@ -101,6 +107,9 @@ var CellComponent = React.createClass({
      */
     handleDoubleClick: function (e) {
         e.preventDefault();
+        if (this.props.locked) {
+            return;
+        }
         this.props.handleDoubleClickOnCell(this.props.uid);
     },
 
@@ -143,12 +152,18 @@ var CellComponent = React.createClass({
             headRowAndEnabled = (config.hasHeadRow && uid[0] === 0),
             headColumnAndEnabled = (config.hasHeadColumn && uid[1] === 0)
 
-        var cellClasses = (props.cellClasses && props.cellClasses.length > 0) ? this.props.cellClasses + ' ' + selected : selected;
+        var cellClasses = ((props.cellClasses && props.cellClasses.length > 0) ?
+            this.props.cellClasses.concat([selected]) :
+            [selected]);
         if (headRow) {
             if (props.sortColumn === uid[1]) {
-                cellClasses = cellClasses + ' ' + (props.isAscending ? 'sp-asc' : 'sp-desc');
+                cellClasses.push(props.isAscending ? 'sp-asc' : 'sp-desc');
             } else {
-                cellClasses = cellClasses + ' ' + 'sp-asc-desc';
+                cellClasses.push('sp-asc-desc');
+            }
+
+            if (props.locked) {
+                cellClasses.push('sp-locked-head');
             }
         }
 
@@ -163,7 +178,7 @@ var CellComponent = React.createClass({
 
             if ((config.isHeadRowString && headRow) || (config.isHeadColumnString && headColumn)) {
                 return (
-                    <th className={cellClasses} ref={this.props.uid.join('_')}>
+                    <th className={cellClasses.join(' ')} ref={this.props.uid.join('_')}>
                         <div>
                             <span onClick={this.handleHeadClick}>
                                 {displayValue}
