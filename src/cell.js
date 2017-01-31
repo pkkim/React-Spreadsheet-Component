@@ -29,7 +29,7 @@ var CellComponent = React.createClass({
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
             cellClasses = ((props.cellClasses) ?
-                props.cellClasses.concat(selected) :
+                props.cellClasses.concat([selected]) :
                 [selected]);
         var cellContent;
 
