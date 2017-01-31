@@ -495,8 +495,13 @@ var SpreadsheetComponent = React.createClass({
         var error = updateConfig.error || function () {};
         var complete = updateConfig.complete || function () {};
 
+        var csrfToken = updateConfig.csrfToken;
+
         $.ajax({
             url: endpoint,
+            beforeSend: (function (jqXHR) {
+                jqXHR.setRequestHeader('X-CSRF-Token', csrfToken);
+            }),
             type: 'post',
             data: {q: JSON.stringify(this.state.changesToApply)},
             success: [success, this.afterDbUpdateSuccess.bind(this)],
