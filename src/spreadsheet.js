@@ -77,9 +77,9 @@ var SpreadsheetComponent = React.createClass({
             finalCellClasses = {rows: new Array(_cellClasses.rows.length)};
             _cellClasses.rows.forEach((row, i) => {
                 finalCellClasses.rows[i] = new Array(row.length);
-                row.forEach((cell, j) => {
+                row.forEach((cellClasses, j) => {
                     finalCellClasses.rows[i][j] = (
-                        cell + ' ' + this.state.addedCellClasses[i][j].join(' ')
+                        cellClasses.concat(this.state.addedCellClasses[i][j])
                     );
                 });
             });

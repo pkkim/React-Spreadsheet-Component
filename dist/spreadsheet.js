@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.5.0 (dev build at Tue, 31 Jan 2017 22:39:13 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.6.1 (dev build at Wed, 01 Feb 2017 01:09:50 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -34,7 +34,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
             cellClasses = ((props.cellClasses) ?
-                props.cellClasses.concat(selected) :
+                props.cellClasses.concat([selected]) :
                 [selected]);
         var cellContent;
 
@@ -583,9 +583,9 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             finalCellClasses = {rows: new Array(_cellClasses.rows.length)};
             _cellClasses.rows.forEach(function(row, i)  {
                 finalCellClasses.rows[i] = new Array(row.length);
-                row.forEach(function(cell, j)  {
+                row.forEach(function(cellClasses, j)  {
                     finalCellClasses.rows[i][j] = (
-                        cell + ' ' + this.state.addedCellClasses[i][j].join(' ')
+                        cellClasses.concat(this.state.addedCellClasses[i][j])
                     );
                 }.bind(this));
             }.bind(this));
