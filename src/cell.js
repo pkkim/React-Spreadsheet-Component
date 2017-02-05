@@ -25,7 +25,6 @@ var CellComponent = React.createClass({
     render: function() {
         var props = this.props,
             selected = (props.selected) ? 'selected' : '',
-            ref = 'input_' + props.uid.join('_'),
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
             cellClasses = ((props.cellClasses) ?
@@ -49,7 +48,7 @@ var CellComponent = React.createClass({
                 <input className="mousetrap"
                        onChange={this.handleChange}
                        onBlur={this.handleBlur}
-                       ref={ref}
+                       ref={input => this.input = input}
                        defaultValue={this.props.value} />
             )
         }
@@ -73,7 +72,7 @@ var CellComponent = React.createClass({
      */
     componentDidUpdate: function(prevProps, prevState) {
         if (this.props.editing && this.props.selected) {
-            var node = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]);
+            var node = this.input;
             node.focus();
         }
 
@@ -87,7 +86,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleClick: function (e) {
-        var cellElement = ReactDOM.findDOMNode(this.refs[this.props.uid.join('_')]);
+        var cellElement = this.input;
         this.props.handleSelectCell(this.props.uid, cellElement);
     },
 
@@ -97,7 +96,7 @@ var CellComponent = React.createClass({
      */
     handleHeadClick: function (e) {
         this.props.handleSort();
-        var cellElement = ReactDOM.findDOMNode(this.refs[this.props.uid.join('_')]);
+        var cellElement = this.input;
         Dispatcher.publish('headCellClicked', cellElement, this.props.spreadsheetId);
     },
 
@@ -118,7 +117,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleBlur: function (e) {
-        var newValue = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]).value;
+        var newValue = this.input;
 
         this.props.onCellValueChange(this.props.uid, newValue, e);
         this.props.handleCellBlur(this.props.uid);
@@ -130,7 +129,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleChange: function (e) {
-        var newValue = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]).value;
+        var newValue = this.input;
 
         this.setState({changedValue: newValue});
     },
