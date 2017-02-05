@@ -1,7 +1,6 @@
 "use strict";
 
 var React = require('react');
-var ReactDOM = require('react-dom');
 
 var Dispatcher = require('./dispatcher');
 var Helpers = require('./helpers');
@@ -13,10 +12,24 @@ var CellComponent = React.createClass({
      * the cell is being edited and its changing value
      */
     getInitialState: function() {
+        var value = Array.isarray(this.props.value) ? this.props.value.selected : this.props.value
         return {
             editing: this.props.editing,
-            changedValue: this.props.value
+            changedValue: value
         };
+    },
+
+    getDisplayValue: function() {
+        var props = this.props;
+        var config = props.config || { emptyValueSymbol: ''};
+        if (Array.isArray(props.value)) {
+            var selectedOption = props.value.options.find(
+                opt => opt[0] === props.value.selected
+            );
+            return ((selectedOption !== undefined) ?
+                selectedOption[1] : config.emptyValueSymbol);
+        }
+        return (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value;
     },
 
     /**
@@ -25,8 +38,7 @@ var CellComponent = React.createClass({
     render: function() {
         var props = this.props,
             selected = (props.selected) ? 'selected' : '',
-            config = props.config || { emptyValueSymbol: ''},
-            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
+            displayValue = this.getDisplayValue(),
             cellClasses = ((props.cellClasses) ?
                 props.cellClasses.concat([selected]) :
                 [selected]);
@@ -44,13 +56,30 @@ var CellComponent = React.createClass({
 
         // If not a header, check for editing and return
         if (props.selected && props.editing) {
-            cellContent = (
-                <input className="mousetrap"
-                       onChange={this.handleChange}
-                       onBlur={this.handleBlur}
-                       ref={input => this.input = input}
-                       defaultValue={this.props.value} />
-            )
+            if (Array.isArray(this.props.value)) {
+                // this.props.value should be an object with keys 'options' and
+                // 'selected', where 'options' is an array of arrays [id, name]
+                // and 'selected' is an id from the array 'options'.
+                var options = this.props.value.options.map(option => (
+                    <option value={option[0]} key={option[0]}>{option[1]}</option>
+                ));
+                cellContent = (
+                    <select onChange={this.handleChange}
+                        onBlur={this.handleBlur}
+                        ref={input => this.input = input}
+                        value={this.props.value.selected} >
+                        {options}
+                    </select>
+                );
+            } else {
+                cellContent = (
+                    <input className="mousetrap"
+                        onChange={this.handleChange}
+                        onBlur={this.handleBlur}
+                        ref={input => this.input = input}
+                        defaultValue={this.props.value} />
+                )
+            }
         }
 
         return (

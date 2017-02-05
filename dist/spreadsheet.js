@@ -1,12 +1,11 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Sun, 05 Feb 2017 08:52:16 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Sun, 05 Feb 2017 08:53:06 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 "use strict";
 
 var React = (typeof window !== "undefined" ? window['React'] : typeof global !== "undefined" ? global['React'] : null);
-var ReactDOM = (typeof window !== "undefined" ? window['ReactDOM'] : typeof global !== "undefined" ? global['ReactDOM'] : null);
 
 var Dispatcher = require('./dispatcher');
 var Helpers = require('./helpers');
@@ -24,14 +23,26 @@ var CellComponent = React.createClass({displayName: "CellComponent",
         };
     },
 
+    getDisplayValue: function() {
+        var props = this.props;
+        var config = props.config || { emptyValueSymbol: ''};
+        if (Array.isArray(props.value)) {
+            var selectedOption = props.value.options.find(
+                function(opt)  {return opt[0] === props.value.selected;}
+            );
+            return ((selectedOption !== undefined) ?
+                selectedOption[1] : config.emptyValueSymbol);
+        }
+        return (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value;
+    },
+
     /**
      * React "render" method, rendering the individual cell
      */
     render: function() {
         var props = this.props,
             selected = (props.selected) ? 'selected' : '',
-            config = props.config || { emptyValueSymbol: ''},
-            displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
+            displayValue = this.getDisplayValue(),
             cellClasses = ((props.cellClasses) ?
                 props.cellClasses.concat([selected]) :
                 [selected]);
@@ -49,13 +60,31 @@ var CellComponent = React.createClass({displayName: "CellComponent",
 
         // If not a header, check for editing and return
         if (props.selected && props.editing) {
-            cellContent = (
-                React.createElement("input", {className: "mousetrap", 
-                       onChange: this.handleChange, 
-                       onBlur: this.handleBlur, 
-                       ref: function(input)  {return this.input = input;}.bind(this), 
-                       defaultValue: this.props.value})
-            )
+            if (Array.isArray(this.props.value)) {
+                // this.props.value should be an object with keys 'options' and
+                // 'selected', where 'options' is an array of arrays [id, name]
+                // and 'selected' is an id from the array 'options'.
+                var options = this.props.value.options.map(function(option)  
+                    {return React.createElement("option", {value: option[0], key: option[0]}, option[1]);}
+                );
+                cellContent = (
+                    React.createElement("select", {
+                        onChange: this.handleChange, 
+                        onBlur: this.handleBlur, 
+                        ref: function(input)  {return this.input = input;}.bind(this), 
+                        value: this.props.value.selected}, 
+                        options
+                    )
+                );
+            } else {
+                cellContent = (
+                    React.createElement("input", {className: "mousetrap", 
+                        onChange: this.handleChange, 
+                        onBlur: this.handleBlur, 
+                        ref: function(input)  {return this.input = input;}.bind(this), 
+                        defaultValue: this.props.value})
+                )
+            }
         }
 
         return (
