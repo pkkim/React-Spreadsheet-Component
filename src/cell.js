@@ -117,7 +117,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleBlur: function (e) {
-        var newValue = this.input;
+        var newValue = this.input.value;
 
         this.props.onCellValueChange(this.props.uid, newValue, e);
         this.props.handleCellBlur(this.props.uid);
@@ -129,7 +129,7 @@ var CellComponent = React.createClass({
      * @param  {event} e
      */
     handleChange: function (e) {
-        var newValue = this.input;
+        var newValue = this.input.value;
 
         this.setState({changedValue: newValue});
     },

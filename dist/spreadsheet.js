@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Sat, 04 Feb 2017 07:36:22 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Sun, 05 Feb 2017 08:52:16 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -30,7 +30,6 @@ var CellComponent = React.createClass({displayName: "CellComponent",
     render: function() {
         var props = this.props,
             selected = (props.selected) ? 'selected' : '',
-            ref = 'input_' + props.uid.join('_'),
             config = props.config || { emptyValueSymbol: ''},
             displayValue = (props.value === '' || !props.value) ? config.emptyValueSymbol : props.value,
             cellClasses = ((props.cellClasses) ?
@@ -54,7 +53,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
                 React.createElement("input", {className: "mousetrap", 
                        onChange: this.handleChange, 
                        onBlur: this.handleBlur, 
-                       ref: ref, 
+                       ref: function(input)  {return this.input = input;}.bind(this), 
                        defaultValue: this.props.value})
             )
         }
@@ -78,7 +77,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      */
     componentDidUpdate: function(prevProps, prevState) {
         if (this.props.editing && this.props.selected) {
-            var node = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]);
+            var node = this.input;
             node.focus();
         }
 
@@ -92,7 +91,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      * @param  {event} e
      */
     handleClick: function (e) {
-        var cellElement = ReactDOM.findDOMNode(this.refs[this.props.uid.join('_')]);
+        var cellElement = this.input;
         this.props.handleSelectCell(this.props.uid, cellElement);
     },
 
@@ -102,7 +101,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      */
     handleHeadClick: function (e) {
         this.props.handleSort();
-        var cellElement = ReactDOM.findDOMNode(this.refs[this.props.uid.join('_')]);
+        var cellElement = this.input;
         Dispatcher.publish('headCellClicked', cellElement, this.props.spreadsheetId);
     },
 
@@ -123,7 +122,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      * @param  {event} e
      */
     handleBlur: function (e) {
-        var newValue = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]).value;
+        var newValue = this.input.value;
 
         this.props.onCellValueChange(this.props.uid, newValue, e);
         this.props.handleCellBlur(this.props.uid);
@@ -135,7 +134,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
      * @param  {event} e
      */
     handleChange: function (e) {
-        var newValue = ReactDOM.findDOMNode(this.refs['input_' + this.props.uid.join('_')]).value;
+        var newValue = this.input.value;
 
         this.setState({changedValue: newValue});
     },
