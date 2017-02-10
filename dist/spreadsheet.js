@@ -1,5 +1,5 @@
 /*!
- * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Fri, 10 Feb 2017 00:02:25 GMT) - 
+ * react-spreadsheet-component-pkkim-fork 1.6.2 (dev build at Fri, 10 Feb 2017 01:43:30 GMT) - 
  * MIT Licensed
  */
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ReactSpreadsheet = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
@@ -22,6 +22,10 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             editing: this.props.editing,
             changedValue: value
         };
+    },
+
+    isSelect: function(value) {
+        return (typeof value === "object" && Array.isArray(value.options));
     },
 
     getDisplayValue: function() {
@@ -110,8 +114,15 @@ var CellComponent = React.createClass({displayName: "CellComponent",
             node.focus();
         }
 
-        if (prevProps.selected && prevProps.editing && this.state.changedValue !== this.props.value) {
-            this.props.onCellValueChange(this.props.uid, this.state.changedValue);
+        var hasChanged;
+        if (this.isSelect(this.props.value)) {
+            hasChanged = Number(this.state.changedValue) !== this.props.value.selected;
+        } else {
+            hasChanged = Number(this.state.changedValue) !== this.props.value;
+        }
+
+        if (prevProps.selected && prevProps.editing && hasChanged) {
+            this.props.onCellValueChange(this.props.uid, this.state.changedValue, this.isSelect());
         }
     },
 
@@ -153,7 +164,7 @@ var CellComponent = React.createClass({displayName: "CellComponent",
     handleBlur: function (e) {
         var newValue = this.input.value;
 
-        this.props.onCellValueChange(this.props.uid, newValue, e);
+        this.props.onCellValueChange(this.props.uid, newValue, this.isSelect());
         this.props.handleCellBlur(this.props.uid);
         Dispatcher.publish('cellBlurred', this.props.uid, this.props.spreadsheetId);
     },
@@ -861,8 +872,6 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
 
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
-        data.rows[row][column] = newValue;
-
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
 
         this.setState(function(prevState, props)  {
@@ -895,7 +904,7 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
                 changeToApply,
                 newValue,
                 props.mapping
-            )
+            );
 
             // newState.addedCellClasses = newAddedCellClasses;
 
@@ -950,7 +959,12 @@ var SpreadsheetComponent = React.createClass({displayName: "SpreadsheetComponent
             cellsToChange.forEach(function (coords) {
                 var iToChange = coords[0];
                 var jToChange = coords[1];
-                rows[iToChange+1][jToChange] = newValue;
+                var oldValue = rows[iToChange+1][jToChange];
+                if (typeof oldValue === 'object' && Array.isArray(oldValue.options)) {
+                    rows[iToChange+1][jToChange] = {options: oldValue.options, selected: Number(newValue)};
+                } else {
+                    rows[iToChange+1][jToChange] = newValue;
+                }
 
                 var classes = newAddedCellClasses[iToChange+1][jToChange];
                 if (!classes.includes('sp-dirty')) {

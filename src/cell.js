@@ -19,6 +19,10 @@ var CellComponent = React.createClass({
         };
     },
 
+    isSelect: function(value) {
+        return (typeof value === "object" && Array.isArray(value.options));
+    },
+
     getDisplayValue: function() {
         var props = this.props;
         var config = props.config || { emptyValueSymbol: ''};
@@ -105,8 +109,15 @@ var CellComponent = React.createClass({
             node.focus();
         }
 
-        if (prevProps.selected && prevProps.editing && this.state.changedValue !== this.props.value) {
-            this.props.onCellValueChange(this.props.uid, this.state.changedValue);
+        var hasChanged;
+        if (this.isSelect(this.props.value)) {
+            hasChanged = Number(this.state.changedValue) !== this.props.value.selected;
+        } else {
+            hasChanged = Number(this.state.changedValue) !== this.props.value;
+        }
+
+        if (prevProps.selected && prevProps.editing && hasChanged) {
+            this.props.onCellValueChange(this.props.uid, this.state.changedValue, this.isSelect());
         }
     },
 
@@ -148,7 +159,7 @@ var CellComponent = React.createClass({
     handleBlur: function (e) {
         var newValue = this.input.value;
 
-        this.props.onCellValueChange(this.props.uid, newValue, e);
+        this.props.onCellValueChange(this.props.uid, newValue, this.isSelect());
         this.props.handleCellBlur(this.props.uid);
         Dispatcher.publish('cellBlurred', this.props.uid, this.props.spreadsheetId);
     },

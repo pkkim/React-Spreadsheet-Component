@@ -327,8 +327,6 @@ var SpreadsheetComponent = React.createClass({
 
         Dispatcher.publish('cellValueChanged', [cell, newValue, oldValue], this.spreadsheetId);
 
-        data.rows[row][column] = newValue;
-
         Dispatcher.publish('dataChanged', data, this.spreadsheetId);
 
         this.setState((prevState, props) => {
@@ -361,7 +359,7 @@ var SpreadsheetComponent = React.createClass({
                 changeToApply,
                 newValue,
                 props.mapping
-            )
+            );
 
             // newState.addedCellClasses = newAddedCellClasses;
 
@@ -416,7 +414,12 @@ var SpreadsheetComponent = React.createClass({
             cellsToChange.forEach(function (coords) {
                 var iToChange = coords[0];
                 var jToChange = coords[1];
-                rows[iToChange+1][jToChange] = newValue;
+                var oldValue = rows[iToChange+1][jToChange];
+                if (typeof oldValue === 'object' && Array.isArray(oldValue.options)) {
+                    rows[iToChange+1][jToChange] = {options: oldValue.options, selected: Number(newValue)};
+                } else {
+                    rows[iToChange+1][jToChange] = newValue;
+                }
 
                 var classes = newAddedCellClasses[iToChange+1][jToChange];
                 if (!classes.includes('sp-dirty')) {
