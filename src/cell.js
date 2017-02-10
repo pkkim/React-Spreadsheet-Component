@@ -12,7 +12,7 @@ var CellComponent = React.createClass({
      * the cell is being edited and its changing value
      */
     getInitialState: function() {
-        var value = Array.isarray(this.props.value) ? this.props.value.selected : this.props.value
+        var value = Array.isArray(this.props.value.options) ? this.props.value.selected : this.props.value
         return {
             editing: this.props.editing,
             changedValue: value
@@ -22,7 +22,7 @@ var CellComponent = React.createClass({
     getDisplayValue: function() {
         var props = this.props;
         var config = props.config || { emptyValueSymbol: ''};
-        if (Array.isArray(props.value)) {
+        if (props.value && Array.isArray(props.value.options)) {
             var selectedOption = props.value.options.find(
                 opt => opt[0] === props.value.selected
             );
@@ -56,7 +56,7 @@ var CellComponent = React.createClass({
 
         // If not a header, check for editing and return
         if (props.selected && props.editing) {
-            if (Array.isArray(this.props.value)) {
+            if (Array.isArray(this.props.value.options)) {
                 // this.props.value should be an object with keys 'options' and
                 // 'selected', where 'options' is an array of arrays [id, name]
                 // and 'selected' is an id from the array 'options'.

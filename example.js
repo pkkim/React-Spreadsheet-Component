@@ -13,7 +13,8 @@ var dataRows = new Array(rows);
 for (var i = 0; i < rows; i++) {
     dataRows[i] = new Array(cols);
     for (var j = 0; j < cols; j++) {
-        dataRows[i][j] = i + j;
+        var select = {options: [[1, "one"], [2, "two"], [3, "three"]], selected: 2};
+        dataRows[i][j] = select;
     }
 }
 exampleOne.data = {
